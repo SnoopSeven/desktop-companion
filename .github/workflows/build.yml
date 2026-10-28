@@ -1,0 +1,152 @@
+name: Test and build desktop apps
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  desktop:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows
+            os: windows-latest
+            build: dist:win
+            certificate: WIN_CERTIFICATE
+            certificate_password: WIN_CERTIFICATE_PASSWORD
+          - name: macOS
+            os: macos-latest
+            build: dist:mac
+            certificate: MAC_CERTIFICATE
+            certificate_password: MAC_CERTIFICATE_PASSWORD
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Verify release version matches tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: node -e "if (process.env.GITHUB_REF_NAME !== 'v' + require('./package.json').version) throw new Error('Tag must match package.json version')"
+      - run: npm run check
+      - run: npm test
+      - run: npm run test:desktop
+      - name: Build installers
+        shell: bash
+        run: |
+          # An empty CSC_LINK is treated as a certificate path by electron-builder.
+          if [ -z "$CSC_LINK" ]; then
+            unset CSC_LINK CSC_KEY_PASSWORD
+          fi
+          if [ "$RUNNER_OS" = "macOS" ] && [ -z "$CSC_LINK" ]; then
+            npm run "$BUILD_COMMAND" -- --publish never --config.mac.identity=- --config.mac.hardenedRuntime=false
+          elif [ -n "$CSC_LINK" ]; then
+            npm run "$BUILD_COMMAND" -- --publish never --config.forceCodeSigning=true
+          else
+            npm run "$BUILD_COMMAND" -- --publish never
+          fi
+        env:
+          # Without a certificate: unsigned Windows builds and ad-hoc signed Mac test builds.
+          BUILD_COMMAND: ${{ matrix.build }}
+          CSC_LINK: ${{ secrets[matrix.certificate] }}
+          CSC_KEY_PASSWORD: ${{ secrets[matrix.certificate_password] }}
+          CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets[matrix.certificate] != '' && 'true' || 'false' }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      - name: Save installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: Miso-${{ matrix.name }}
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.zip
+          if-no-files-found: error
+      - name: Save desktop screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Screenshots-${{ matrix.name }}
+          path: test-results/*.png
+          if-no-files-found: ignore
+
+  release:
+    name: Publish GitHub release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: desktop
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: Miso-*
+          merge-multiple: true
+          path: installers
+      - name: Publish installers and checksums
+        shell: bash
+        working-directory: installers
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+          WINDOWS_SIGNED: ${{ secrets.WIN_CERTIFICATE != '' }}
+          MAC_SIGNED: ${{ secrets.MAC_CERTIFICATE != '' }}
+          MAC_NOTARIZED: ${{ secrets.MAC_CERTIFICATE != '' && secrets.APPLE_ID != '' && secrets.APPLE_APP_SPECIFIC_PASSWORD != '' && secrets.APPLE_TEAM_ID != '' }}
+        run: |
+          set -euo pipefail
+          # Refuse to publish an incomplete set of downloads.
+          test -f "Miso-${TAG#v}-Windows-Setup.exe"
+          test -f "Miso-${TAG#v}-Windows-Portable.exe"
+          test -f "Miso-${TAG#v}-Windows-Portable-x64.exe"
+          test -f "Miso-${TAG#v}-Windows-Portable-arm64.exe"
+          test -f "Miso-${TAG#v}-mac-arm64.dmg"
+          test -f "Miso-${TAG#v}-mac-x64.dmg"
+          test -f "Miso-${TAG#v}-mac-arm64.zip"
+          test -f "Miso-${TAG#v}-mac-x64.zip"
+          sha256sum *.exe *.dmg *.zip > SHA256SUMS.txt
+          cat > ../release-notes.md <<'NOTES'
+          Open Miso and the cat appears immediately. Drag it anywhere; right-click for actions or Quit.
+
+          Includes the updated pixel artwork for all four skins, with crisp scaling, walking animations, and sleeping poses. Every packaged app's source and artwork are verified against the release source before creating downloads.
+
+          ### Downloads
+          - **Windows, no installation:** `Windows-Portable.exe` automatically selects the right architecture. Download and double-click. Smaller `Windows-Portable-x64.exe` (most PCs) and `Windows-Portable-arm64.exe` (ARM PCs) are also available.
+          - **Windows, installed app:** `Windows-Setup.exe` selects your PC's architecture, installs without admin access, and starts Miso. Future launches open the cat directly.
+          - **Mac:** `mac-arm64.dmg` for Apple silicon, `mac-x64.dmg` for Intel. Open the DMG, drag Miso to Applications, then open it. ZIP copies are also included.
+
+          No Node.js, source code, account, or API key required. SHA256SUMS.txt contains download checksums.
+
+          NOTES
+          if [ "$WINDOWS_SIGNED" != "true" ]; then
+            printf '\nWindows downloads are unsigned and may show an unknown-publisher/SmartScreen prompt.\n' >> ../release-notes.md
+          fi
+          if [ "$MAC_SIGNED" != "true" ] || [ "$MAC_NOTARIZED" != "true" ]; then
+            cat >> ../release-notes.md <<'MAC_NOTES'
+
+          ### Mac opening warning
+          These Mac downloads are not fully Developer ID signed and notarized. macOS may show “Apple could not verify Miso is free of malware.”
+
+          If you trust your copy from this project's GitHub Releases: drag Miso into Applications, try opening it, and click **Done** in the warning. Then open **System Settings → Privacy & Security**, scroll to **Security**, click **Open Anyway** for Miso, and confirm **Open**. Authenticate if prompted. Later launches can open normally.
+
+          [Apple's instructions](https://support.apple.com/en-us/102445).
+          MAC_NOTES
+          fi
+          if gh release view "$TAG" --json isDraft > ../existing-release.json 2>/dev/null; then
+            node -e "if (!require('../existing-release.json').isDraft) throw new Error('Refusing to replace an already published release')"
+          else
+            gh release create "$TAG" --verify-tag --draft --title "Miso $TAG" --notes-file ../release-notes.md
+          fi
+          gh release upload "$TAG" ./*.exe ./*.dmg ./*.zip SHA256SUMS.txt --clobber
+          gh release edit "$TAG" --draft=false --latest --notes-file ../release-notes.md

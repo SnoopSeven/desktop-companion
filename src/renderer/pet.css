@@ -1,0 +1,17 @@
+:root { color-scheme: light; --scale: 1; }
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; user-select: none; }
+#companion { width: 100%; height: 100%; }
+#cat { position: absolute; left: 2.6087%; bottom: 7.2072%; width: 94.7826%; height: 87.3874%; border: 0; padding: 0; background: transparent; cursor: grab; -webkit-tap-highlight-color: transparent; }
+#cat:active { cursor: grabbing; }
+#cat { touch-action: none; }
+#cat:focus-visible { outline: 2px dotted #658c7b; outline-offset: 3px; border-radius: 45%; }
+#sprite { width: 100%; height: 100%; object-fit: contain; object-position: center bottom; image-rendering: pixelated; pointer-events: none; }
+#cat[data-activity="interact"] { animation: affection 650ms ease-out; }
+#cat[data-activity="play"] { animation: play 700ms ease-in-out 6; }
+#cat.reduced-motion { animation: none; }
+@keyframes affection { 35% { translate: 0 -5px; } }
+@keyframes play { 25% { rotate: -7deg; } 75% { rotate: 7deg; } }
+@media (prefers-reduced-motion: reduce) { #cat { animation: none !important; } }
+#bubble { position: absolute; top: 5px; left: 50%; transform: translateX(-50%); max-width: 95%; width: max-content; border: 1px solid #dddcd4; padding: 8px 12px; border-radius: 14px 14px 14px 3px; background: #faf9f2; color: #293b33; font: 11px/1.3 system-ui, sans-serif; text-align: center; opacity: 0; pointer-events: none; }
+#bubble.visible { opacity: 1; }

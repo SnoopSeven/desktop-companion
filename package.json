@@ -1,0 +1,48 @@
+{
+  "name": "miso-desktop-companion",
+  "version": "1.0.3",
+  "description": "A little ghost cat for your desktop. Floats, plays, and keeps you company.",
+  "main": "src/main.js",
+  "author": "Adventnl",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "postinstall": "install-electron",
+    "start": "electron .",
+    "test": "node --test test/*.test.js",
+    "test:desktop": "node scripts/smoke.cjs",
+    "pack": "electron-builder --dir",
+    "dist:win": "electron-builder --win",
+    "dist:portable": "electron-builder --win portable --x64 --arm64",
+    "dist:mac": "electron-builder --mac",
+    "check": "node --check src/main.js && node --check src/preload.js && node --check src/core.js && node --check src/renderer/pet.js"
+  },
+  "devDependencies": {
+    "@electron/asar": "3.4.1",
+    "electron": "44.9.0",
+    "electron-builder": "26.15.3"
+  },
+  "engines": { "node": ">=24" },
+  "build": {
+    "appId": "com.adventnl.miso",
+    "productName": "Miso",
+    "artifactName": "Miso-${version}-${os}-${arch}.${ext}",
+    "directories": { "output": "dist", "buildResources": "build" },
+    "files": ["src/**/*", "assets/**/*", "package.json"],
+    "asar": true,
+    "afterPack": "scripts/verify-package.cjs",
+    "mac": {
+      "category": "public.app-category.entertainment",
+      "icon": "build/icon.icns",
+      "target": [{ "target": "dmg", "arch": ["arm64", "x64"] }, { "target": "zip", "arch": ["arm64", "x64"] }],
+      "hardenedRuntime": true,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "dmg": { "title": "Miso", "contents": [{ "x": 140, "y": 150 }, { "x": 410, "y": 150, "type": "link", "path": "/Applications" }] },
+    "win": { "icon": "build/icon.ico", "target": [{ "target": "nsis", "arch": ["x64", "arm64"] }, { "target": "portable", "arch": ["x64", "arm64"] }] },
+    "nsis": { "artifactName": "Miso-${version}-Windows-Setup.${ext}", "oneClick": true, "perMachine": false, "createDesktopShortcut": true, "shortcutName": "Miso", "deleteAppDataOnUninstall": false, "runAfterFinish": true },
+    "portable": { "artifactName": "Miso-${version}-Windows-Portable-${arch}.${ext}", "requestExecutionLevel": "user" },
+    "linux": { "icon": "build/icon.png", "target": "dir", "category": "Game" }
+  }
+}

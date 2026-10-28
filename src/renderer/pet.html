@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'self'; script-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Miso companion</title>
+  <link rel="stylesheet" href="pet.css">
+</head>
+<body>
+  <main id="companion" aria-label="Miso, your ghost cat">
+    <div id="bubble" role="status"></div>
+    <button id="cat" aria-label="Pet Miso. Drag to move, right-click for controls.">
+      <img id="sprite" src="../../assets/cat/pixel/none-idle.png" alt="" draggable="false">
+    </button>
+  </main>
+  <script src="pet.js"></script>
+</body>
+</html>

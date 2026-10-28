@@ -1,0 +1,162 @@
+[
+  {
+    "name": "none-idle.png",
+    "sourceBounds": {
+      "x": 67,
+      "y": 145,
+      "width": 266,
+      "height": 218
+    },
+    "frameSize": 320
+  },
+  {
+    "name": "hat-idle.png",
+    "sourceBounds": {
+      "x": 362,
+      "y": 74,
+      "width": 271,
+      "height": 289
+    },
+    "frameSize": 320
+  },
+  {
+    "name": "pumpkin-idle.png",
+    "sourceBounds": {
+      "x": 661,
+      "y": 104,
+      "width": 264,
+      "height": 262
+    },
+    "frameSize": 320
+  },
+  {
+    "name": "box-idle.png",
+    "sourceBounds": {
+      "x": 936,
+      "y": 144,
+      "width": 291,
+      "height": 233
+    },
+    "frameSize": 320
+  },
+  {
+    "name": "none-walk_1.png",
+    "sourceBounds": {
+      "x": 58,
+      "y": 486,
+      "width": 265,
+      "height": 203
+    },
+    "frameSize": 320
+  },
+  {
+    "name": "hat-walk_1.png",
+    "sourceBounds": {
+      "x": 357,
+      "y": 404,
+      "width": 270,
+      "height": 285
+    },
+    "frameSize": 320
+  },
+  {
+    "name": "pumpkin-walk_1.png",
+    "sourceBounds": {
+      "x": 642,
+      "y": 436,
+      "width": 275,
+      "height": 254
+    },
+    "frameSize": 320
+  },
+  {
+    "name": "box-walk_1.png",
+    "sourceBounds": {
+      "x": 946,
+      "y": 479,
+      "width": 285,
+      "height": 219
+    },
+    "frameSize": 320
+  },
+  {
+    "name": "none-walk_2.png",
+    "sourceBounds": {
+      "x": 40,
+      "y": 779,
+      "width": 274,
+      "height": 203
+    },
+    "frameSize": 320
+  },
+  {
+    "name": "hat-walk_2.png",
+    "sourceBounds": {
+      "x": 347,
+      "y": 703,
+      "width": 280,
+      "height": 277
+    },
+    "frameSize": 320
+  },
+  {
+    "name": "pumpkin-walk_2.png",
+    "sourceBounds": {
+      "x": 640,
+      "y": 731,
+      "width": 275,
+      "height": 253
+    },
+    "frameSize": 320
+  },
+  {
+    "name": "box-walk_2.png",
+    "sourceBounds": {
+      "x": 943,
+      "y": 777,
+      "width": 283,
+      "height": 215
+    },
+    "frameSize": 320
+  },
+  {
+    "name": "none-sleep.png",
+    "sourceBounds": {
+      "x": 57,
+      "y": 1055,
+      "width": 277,
+      "height": 174
+    },
+    "frameSize": 320
+  },
+  {
+    "name": "hat-sleep.png",
+    "sourceBounds": {
+      "x": 355,
+      "y": 996,
+      "width": 283,
+      "height": 231
+    },
+    "frameSize": 320
+  },
+  {
+    "name": "pumpkin-sleep.png",
+    "sourceBounds": {
+      "x": 653,
+      "y": 1020,
+      "width": 276,
+      "height": 209
+    },
+    "frameSize": 320
+  },
+  {
+    "name": "box-sleep.png",
+    "sourceBounds": {
+      "x": 942,
+      "y": 1053,
+      "width": 280,
+      "height": 186
+    },
+    "frameSize": 320
+  }
+]
